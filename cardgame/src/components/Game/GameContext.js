@@ -1,5 +1,6 @@
-import { cards } from "../data/cards.js";
+import { cards } from "../Cards/Cards.js";
 
+export function GameFunction () {
 var turno = 0;
 
 function shuffle(array) {
@@ -242,4 +243,5 @@ function showPopupMessage(mensagem, tempoExibicao) {
   setTimeout(() => {
     hidePopup();
   }, tempoExibicao);
+}
 }
