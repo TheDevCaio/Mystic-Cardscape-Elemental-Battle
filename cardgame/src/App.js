@@ -1,16 +1,15 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './components/LandingPage/Home';
-import Game from './components/Game/Game';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import {Game} from './components/Game/Game.js';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/game" element={<Game />} />
+        <Route path="/game" element={<Game/>  }/>
+
       </Routes>
-    </Router>
+      </BrowserRouter>
   );
 }
 
