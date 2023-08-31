@@ -1,33 +1,42 @@
-import './Game.css';
 import React, { useState, useEffect, useRef } from 'react';
 import { cards } from '../Data/Object';
+import '../Card/Card.css'
+import '../Card/Game.css'
 
 function Game() {
-  const [player, setPlayer] = useState({
-    energiaAtual: 1,
-    energiaMaxima: 8,
-    cartasNaMao: [],
-    deck: shuffle([...cards]),
-  });
 
-  const [computer, setComputer] = useState({
-    energiaAtual: 1,
+  const [player, setPlayer] = useState({
+    energiaAtual: 0,
     energiaMaxima: 1,
     cartasNaMao: [],
     deck: shuffle([...cards]),
   });
 
-  const [popup, setPopup] = useState(false);
+  const [computer, setComputer] = useState({
+    energiaAtual: 0,
+    energiaMaxima: 1,
+    cartasNaMao: [],
+    deck: shuffle([...cards]),
+  });
+
+  const [locations, setLocations] = useState([
+   [], // Localização 1
+   [], // Localização 2
+   [], // Localização 3
+  ]);
+
+  
+  const [popup, setPopup] = useState(true);
   const [popupMsg, setPopupMsg] = useState('');
   const [turno, setTurno] = useState(0);
+  const [popupVisible, setPopupVisible] = useState(false);
 
-  const locationRefs = useRef([]);
+  const [locationRefs, setLocationRefs] = useState([]);
 
-  useEffect(() => {
-    if (turno === 0) {
-      startGame();
-    }
-  }, [turno]);
+  const getLocationRef = (index) => {
+    return locationRefs[index];
+  };
+
 
 
   function shuffle(array) {
@@ -38,12 +47,13 @@ function Game() {
     return array;
   }
 
-  function createCard(card) {
+  function createCard(card, index) {
     return (
-      <div key={card.nome} className="card-element card" draggable="true" data-power={card.poder} data-attribute={card.tipo} data-cost={card.custo}>
-        <img className="card-image" draggable="false" src={card.imageSrc} alt="Card Image" />
+      <div key={index} className="card-element card" draggable="true" data-power={card.poder} data-attribute={card.tipo} data-cost={card.custo}  onDragStart={(event) => handleDragStart(event, card)}>
+        
+        <img className="card-image" draggable="false" src={card.imgSrc} alt="Card Image" />
         <h2 className="card-name">{card.nome}</h2>
-        <p className="card-info card-power">Poder: {card.power}</p>
+        <p className="card-info card-power">Poder: {card.poder}</p>
         <p className="card-info card-attribute">Atributo: {card.tipo}</p>
         <p className="card-info card-cost">Custo: {card.custo}</p>
       </div>
@@ -52,8 +62,21 @@ function Game() {
 
   function createCardPc(card) {
     return (
-      <div key={card.nome} className="card-element cardPC" id={card.nome} data-power={card.poder} data-attribute={card.tipo} data-cost={card.custo}>
-        <img className="card-image" draggable="false" src="../../assets/imagens/background.png" alt="Card Image" />
+      <div
+        key={card.nome}
+        className="card-element cardPC"
+        id={card.nome}
+        data-power={card.poder}
+        data-attribute={card.tipo}
+        data-cost={card.custo}
+        ref={getLocationRef(0)}
+      >
+        <img
+          className="card-image"
+          draggable="false"
+          src="assets/background.png"
+          alt="Card Image"
+        />
       </div>
     );
   }
@@ -70,11 +93,14 @@ function Game() {
     }));
   }
 
+
+
   function drawCardPC() {
     if (computer.deck.length === 0) {
       console.log("O deck do pc está vazio!");
       return;
     }
+    
     const card = computer.deck.shift();
     setComputer(prevComputer => ({
       ...prevComputer,
@@ -100,6 +126,11 @@ function Game() {
     }
 
     setTimeout(computerPlay, 4000);
+
+    // Ocultar o popup após o início do jogo
+    setTimeout(() => {
+      hidePopup();
+    }, 4000);
   }
 
   function newTurn() {
@@ -166,31 +197,56 @@ function Game() {
 
   function computerPlay() {
     showPopupMessage("O computador realizou a jogada!", 2000);
-
+  
     for (let i = 0; i < computer.cartasNaMao.length; i++) {
       const card = computer.cartasNaMao[i];
       if (card.custo <= computer.energiaAtual) {
-        const cardEl = document.getElementById(card.nome);
-        cardEl.remove();
-
-        const randomLocation = Math.floor(Math.random() * 3);
-        if (locationRefs[randomLocation].current.childElementCount < 4) {
-          locationRefs[randomLocation].current.appendChild(
-            createCardPc(card)
-          );
+        const randomLocation = Math.floor(Math.random() * 3); // Escolhe uma localização aleatória
+        const targetRef = locationRefs[randomLocation];
+  
+        if (targetRef && targetRef.current && targetRef.current.childElementCount < 4) {
+          setComputer(prevComputer => ({
+            ...prevComputer,
+            cartasNaMao: prevComputer.cartasNaMao.filter((_, index) => index !== i),
+            energiaAtual: prevComputer.energiaAtual - card.custo,
+          }));
+  
+          targetRef.current.appendChild(createCardPc(card));
         }
-
-        setComputer(prevComputer => ({
-          ...prevComputer,
-          cartasNaMao: prevComputer.cartasNaMao.filter((_, index) => index !== i),
-          energiaAtual: prevComputer.energiaAtual - card.custo,
-        }));
       }
     }
   }
 
+  const handleDragStart = (event, card) => {
+    event.dataTransfer.setData("text/plain", card.nome);
+  };
+
+  const handleDrop = (event, locationIndex) => {
+    event.preventDefault();
+    const cardName = event.dataTransfer.getData("text/plain");
+    const card = player.cartasNaMao.find((c) => c.nome === cardName);
+
+    if (card) {
+      if (player.energiaAtual >= card.custo && locations[locationIndex].length < 4) {
+        setLocations(prevLocations => {
+          const newLocations = [...prevLocations];
+          newLocations[locationIndex] = [...newLocations[locationIndex], card];
+          return newLocations;
+        });
+
+        setPlayer(prevPlayer => ({
+          ...prevPlayer,
+          energiaAtual: prevPlayer.energiaAtual - card.custo,
+          cartasNaMao: prevPlayer.cartasNaMao.filter((c) => c.nome !== cardName),
+        }));
+      } else {
+        showPopupMessage("Você não pode jogar esta carta aqui!", 2000);
+      }
+    }
+  };
+
   useEffect(() => {
-    locationRefs.current.forEach((locationRef) => {
+    locationRefs.forEach((locationRef, index) => {
       if (locationRef.current) {
         locationRef.current.addEventListener("dragover", (event) => {
           event.preventDefault();
@@ -199,7 +255,9 @@ function Game() {
         locationRef.current.addEventListener("drop", (event) => {
           event.preventDefault();
           const cardId = event.dataTransfer.getData("text/plain");
-          const card = locationRefs.current.find(cardRef => cardRef.current.id === cardId);
+          const card = Array.from(event.target.children).find(
+            (cardRef) => cardRef.id === cardId
+          );
 
           if (event.target.classList.contains("location")) {
             if (event.target.children.length < 4) {
@@ -222,7 +280,7 @@ function Game() {
   }, [locationRefs, player]);
 
 
-  function showPopupMessage(mensagem, tempoExibicao) {
+   function showPopupMessage(mensagem, tempoExibicao) {
     setPopupMsg(mensagem);
     setPopup(true);
 
@@ -248,10 +306,10 @@ function Game() {
       </section>
 
       <section>
-        <div id="popup" className="popup-show">
-          <button className="button" id="start-btn">Iniciar Jogo</button>
-          <p id="popup-msg">{popupMsg}</p>
-        </div>
+      <div id="popup" className={popupVisible ? 'popup-show' : 'popup-hide'}>
+            <button className="button" id="start-btn" onClick={startGame}>Iniciar Jogo</button>
+            <p id="popup-msg">{popupMsg}</p>
+          </div>
       </section>
 
       <section>
@@ -282,7 +340,7 @@ function Game() {
           <div id="player-energy-bar">
             <span>Energia: <span id="player-energy-value">{player.energiaAtual}</span>/<span id="player-energy-max">{player.energiaMaxima}</span></span>
           </div>
-          <div id="player-hand">{player.cartasNaMao.map(createCard)}</div>
+          <div id="player-hand">{player.cartasNaMao.map((card, index) => createCard(card, index))}</div>
         </div>
       </section>
     </main>

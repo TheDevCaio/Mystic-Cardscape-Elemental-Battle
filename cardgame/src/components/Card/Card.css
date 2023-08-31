@@ -1,56 +1,57 @@
-.card-container {
-    white-space: nowrap;
-    overflow-x: auto;
-    display: flex;
-    justify-content: center;
-  }
-  
-  .card {
-    display: inline-block;
-    width: 120;
-    height: 160px;
-    background-color: #f1f1f1;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 5px;
-    text-align: center;
-    margin-right: 10px;
-  }
-  
-  .card-image {
-    width: 100%;
-    height: 90px;
-    border-radius: 5px;
-  }
-  
-  .card-name {
-    font-size: 10px;
-    font-weight: bold;
-    color: black;
-  }
-  
-  .card-info {
-    font-size: 8px;
-    color: black;
-    margin: 0;
-  }
-  .cardPC {
-    display: flex;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 5px;
-    text-align: center;
-    margin-right: 10px;
-  }
-  
-  .display-hand {
-    display: flex;
-    justify-content: center;
-    border: 1px solid #fff;
-    padding: 10px;
-  }
-  #player-hand {
-    max-height: 200px;
-    overflow: auto;
-  
-  }
+.card-element {
+  white-space: nowrap;
+  overflow-x: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.card-element {
+  display: inline-block;
+  width: 120px; /* Adicione 'px' para especificar unidades */
+  height: 160px;
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+.card-image {
+  width: 100%;
+  height: 90px;
+  border-radius: 5px;
+}
+
+.card-name {
+  font-size: 10px;
+  font-weight: bold;
+  color: black;
+}
+
+.card-info {
+  font-size: 8px;
+  color: black;
+  margin: 0;
+}
+
+.cardPC {
+  display: flex;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+.display-hand {
+  display: flex;
+  justify-content: center;
+  border: 1px solid #fff;
+  padding: 10px;
+}
+
+#player-hand {
+  max-height: 200px;
+  overflow: auto;
+}
