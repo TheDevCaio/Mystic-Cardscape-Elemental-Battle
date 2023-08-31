@@ -26,10 +26,10 @@ function Game() {
   ]);
 
   
-  const [popup, setPopup] = useState(true);
+  const [popup, setPopup] = useState(false);
   const [popupMsg, setPopupMsg] = useState('');
   const [turno, setTurno] = useState(0);
-  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupVisible, setPopupVisible] = useState(true);
 
   const [locationRefs, setLocationRefs] = useState([]);
 
@@ -110,7 +110,7 @@ function Game() {
 
   function startGame() {
     showPopupMessage("Sacando cartas...", 4000);
-
+  
     setPlayer(prevPlayer => ({
       ...prevPlayer,
       energiaAtual: prevPlayer.energiaMaxima
@@ -119,18 +119,18 @@ function Game() {
       ...prevComputer,
       energiaAtual: prevComputer.energiaMaxima
     }));
-
+  
     for (let i = 0; i < 4; i++) {
       setTimeout(drawCardPlayer, i * 500);
       setTimeout(drawCardPC, (i + 1) * 500);
     }
-
+  
     setTimeout(computerPlay, 4000);
-
+  
     // Ocultar o popup após o início do jogo
     setTimeout(() => {
       hidePopup();
-    }, 4000);
+    }, 2000);
   }
 
   function newTurn() {
@@ -217,79 +217,86 @@ function Game() {
     }
   }
 
-  const handleDragStart = (event, card) => {
+  function handleDragStart(event, card) {
     event.dataTransfer.setData("text/plain", card.nome);
-  };
-
-  const handleDrop = (event, locationIndex) => {
-    event.preventDefault();
-    const cardName = event.dataTransfer.getData("text/plain");
-    const card = player.cartasNaMao.find((c) => c.nome === cardName);
-
-    if (card) {
-      if (player.energiaAtual >= card.custo && locations[locationIndex].length < 4) {
-        setLocations(prevLocations => {
-          const newLocations = [...prevLocations];
-          newLocations[locationIndex] = [...newLocations[locationIndex], card];
-          return newLocations;
-        });
-
-        setPlayer(prevPlayer => ({
-          ...prevPlayer,
-          energiaAtual: prevPlayer.energiaAtual - card.custo,
-          cartasNaMao: prevPlayer.cartasNaMao.filter((c) => c.nome !== cardName),
-        }));
-      } else {
-        showPopupMessage("Você não pode jogar esta carta aqui!", 2000);
-      }
-    }
-  };
+  }
+  
 
   useEffect(() => {
-    locationRefs.forEach((locationRef, index) => {
-      if (locationRef.current) {
-        locationRef.current.addEventListener("dragover", (event) => {
-          event.preventDefault();
-        });
+    const playerHandDiv = document.getElementById("player-hand");
 
-        locationRef.current.addEventListener("drop", (event) => {
-          event.preventDefault();
-          const cardId = event.dataTransfer.getData("text/plain");
-          const card = Array.from(event.target.children).find(
-            (cardRef) => cardRef.id === cardId
-          );
-
-          if (event.target.classList.contains("location")) {
-            if (event.target.children.length < 4) {
-              if (player.energiaAtual >= parseInt(card.dataset.cost)) {
-                event.target.appendChild(card);
-                setPlayer((prevPlayer) => ({
-                  ...prevPlayer,
-                  energiaAtual: prevPlayer.energiaAtual - parseInt(card.dataset.cost),
-                }));
-              } else {
-                showPopupMessage("Você não tem energia suficiente!", 2000);
-              }
-            } else {
-              showPopupMessage("Você não pode jogar mais cartas nesse campo!", 2000);
-            }
-          }
-        });
+    playerHandDiv.addEventListener("dragstart", function (event) {
+      if (
+        event.target.closest(".card") ||
+        event.target.classList.contains("card")
+      ) {
+        event.dataTransfer.setData("text/plain", event.target.id);
       }
     });
-  }, [locationRefs, player]);
+
+    const handleLocationDragOver = (event) => {
+      event.preventDefault();
+    };
+
+    const handleLocationDrop = (event, locationIndex) => {
+      event.preventDefault();
+      const cardId = event.dataTransfer.getData("text/plain");
+      const card = document.getElementById(cardId);
+
+      const targetLocation = locations[locationIndex];
+
+      if (targetLocation.length < 4) {
+        if (player.energiaAtual >= parseInt(card.dataset.cost)) {
+          setLocations((prevLocations) => {
+            const newLocations = [...prevLocations];
+            newLocations[locationIndex] = [...newLocations[locationIndex], card];
+            return newLocations;
+          });
+
+          setPlayer((prevPlayer) => ({
+            ...prevPlayer,
+            energiaAtual: prevPlayer.energiaAtual - parseInt(card.dataset.cost),
+          }));
+        } else {
+          showPopupMessage("Você não tem energia suficiente!", 2000);
+        }
+      } else {
+        showPopupMessage("Você não pode jogar mais cartas nesse campo!", 2000);
+      }
+    };
+
+    // Attach event listeners to each location element
+    locationRefs.forEach((locationRef, index) => {
+      if (locationRef && locationRef.current) {
+        locationRef.current.addEventListener("dragover", handleLocationDragOver);
+        locationRef.current.addEventListener("drop", (event) => handleLocationDrop(event, index));
+      }
+    });
+
+    return () => {
+      playerHandDiv.removeEventListener("dragstart", handleDragStart);
+      locationRefs.forEach((locationRef, index) => {
+        if (locationRef && locationRef.current) {
+          locationRef.current.removeEventListener("dragover", handleLocationDragOver);
+          locationRef.current.removeEventListener("drop", () => handleLocationDrop);
+        }
+      });
+    };
+  }, [player, locationRefs]);
+
 
 
    function showPopupMessage(mensagem, tempoExibicao) {
-    setPopupMsg(mensagem);
+    setPopupVisible(true);
     setPopup(true);
 
     setTimeout(() => {
       hidePopup();
-    }, tempoExibicao);
+    }, 2000);
   }
 
   function hidePopup() {
+    setPopupVisible(false);
     setPopup(false);
   }
 
@@ -306,20 +313,20 @@ function Game() {
       </section>
 
       <section>
-      <div id="popup" className={popupVisible ? 'popup-show' : 'popup-hide'}>
-            <button className="button" id="start-btn" onClick={startGame}>Iniciar Jogo</button>
-            <p id="popup-msg">{popupMsg}</p>
-          </div>
+      <div id="popup" style={{ display: popupVisible ? 'popup-show' : 'none' }}>
+      <button className="button" id="start-btn" onClick={startGame}>Iniciar Jogo</button>
+      <p id="popup-msg">{popupMsg}</p>
+      </div>
       </section>
 
       <section>
-        <div id="container" className="game-inactive">
-          <div id="computer">
-            <div id="computer-hand" className="display-hand"></div>
-            <div id="computer-energy"></div>
-          </div>
-        </div>
-      </section>
+  <div id="container" className={popupVisible ? 'game-inactive' : ''}>
+    <div id="computer">
+      <div id="computer-hand" className="display-hand"></div>
+      <div id="computer-energy"></div>
+    </div>
+  </div>
+</section>
 
       <section>
         <div id="board">

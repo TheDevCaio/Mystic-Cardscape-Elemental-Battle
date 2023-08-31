@@ -2,31 +2,31 @@
     border: 1px solid #000;
     padding: 2px;
     margin-bottom: 2px;
-    background-image: url("../../assets/FundoJogo.png");
+    background-image: url("../../../public/assets/FundoJogo.png");
     background-size: 240%;
   }
   
   #board {
     display: flex;
     flex-wrap: wrap;
+    background-image: url("../../../public/assets/FundoJogo.png");
     justify-content: center;
   }
   
   #player {
-    background-image: url("../../assets/tableMain.jpg");
+    background-image: url("../../../public/assets/FundoJogo.png");
     background-size: 150%;
     color: #fff; 
   }
   
   #computer {
-    background-image: url("../../assets/tableMain.jpg");
     background-size: 150%;
     color: #fff; 
   }
   
   body {
     background-size: 170%;
-    background-image: url("../../assets/tableMain.jpg");
+    background-image: url("../../../public/assets/tableMain.jpg");
   }
   
   .buttons {
@@ -63,15 +63,15 @@
   }
   
   #location1 {
-    background-image: url("../../assets/FireTable.jpg");
+    background-image: url("../../../public/assets/FireTable.jpg");
   }
   
   #location2 {
-    background-image: url("../../assets/WhaterTable.jpg");
+    background-image: url("../../../public/assets/WhaterTable.jpg");
   }
   
   #location3 {
-    background-image: url("../../assets/AirTable.jpg");
+    background-image: url("../../../public/assets/AirTable.jpg");
   }
   
   #player-energy-bar {
@@ -218,8 +218,12 @@
 
   .popup-show {
     display: block;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
   }
   
   .popup-hide {
-    display: none;
+    display: block;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
   }
