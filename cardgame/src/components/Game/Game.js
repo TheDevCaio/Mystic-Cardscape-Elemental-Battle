@@ -15,6 +15,10 @@ function Game() {
     deck: shuffle([...cards]),
   });
 
+  const [playerHand, setPlayerHand] = useState([
+    
+  ]);
+
   const [computer, setComputer] = useState({
     energiaAtual: 0,
     energiaMaxima: 1,
@@ -44,40 +48,51 @@ function Game() {
     { ref: locationRef3, index: 2 },
   ]);
 
+  function renderPlayerHand() {
+    return (
+      <div id="player-hand">
+        {playerHand.map((card, index) => createCard(card, index))}
+      </div>
+    );
+  }
   
   const handleLocationDrop = (event, locationIndex) => {
     console.log("Soltando carta na location:", locationIndex);
     event.preventDefault();
-
+  
     const cardData = JSON.parse(event.dataTransfer.getData('application/json'));
-
+  
     if (event.target.classList.contains('droppable-location')) {
       if (event.target.children.length < 2) {
         if (player.energiaAtual >= cardData.custo) {
           // Clone o estado do jogador
           const updatedPlayer = { ...player };
-
-          // Remova a carta da mão do jogador
-          const updatedHand = updatedPlayer.cartasNaMao.filter((_, index) => index !== cardData.index);
-          updatedPlayer.cartasNaMao = updatedHand;
-          updatedPlayer.energiaAtual -= cardData.custo;
-
-          // Atualize o estado do jogador
-          setPlayer(updatedPlayer);
-
-          // Atualize as localizações
-          const updatedLocations = [...locations];
-          updatedLocations[locationIndex] = [
-            ...updatedLocations[locationIndex],
-            {
-              image: cardData.imgSrc,
-              nome: cardData.nome,
-              tipo: cardData.tipo,
-              poder: cardData.poder,
-              custo: cardData.custo,
-            },
-          ];
-          setLocations(updatedLocations);
+  
+          // Encontre o índice da carta na mão do jogador
+          const cardIndex = updatedPlayer.cartasNaMao.findIndex((card) => card.nome === cardData.nome);
+  
+          if (cardIndex !== -1) {
+            // Remova a carta da mão do jogador
+            updatedPlayer.cartasNaMao.splice(cardIndex, 1);
+  
+            // Atualize o estado do jogador
+            setPlayer(updatedPlayer);
+            setPlayerHand([...updatedPlayer.cartasNaMao]); // Atualize playerHand com a nova cópia da mão
+  
+            // Atualize as localizações
+            const updatedLocations = [...locations];
+            updatedLocations[locationIndex] = [
+              ...updatedLocations[locationIndex],
+              {
+                image: cardData.imgSrc,
+                nome: cardData.nome,
+                tipo: cardData.tipo,
+                poder: cardData.poder,
+                custo: cardData.custo,
+              },
+            ];
+            setLocations(updatedLocations);
+          }
         } else {
           showPopupMessage('Você não tem energia suficiente!', 2000);
         }
@@ -133,17 +148,19 @@ function Game() {
   );
 }
 
-  function drawCardPlayer() {
-    if (player.deck.length === 0) {
-      showPopupMessage("O deck está vazio!", 2000);
+function drawCardPlayer() {
+  // Se o deck do jogador estiver vazio, exiba uma mensagem ou lide com isso conforme necessário
+  if (player.deck.length === 0) {
+    console.log('Ausência de energia')
       return;
-    }
-    const card = player.deck.shift();
-    setPlayer(prevPlayer => ({
-      ...prevPlayer,
-      cartasNaMao: [...prevPlayer.cartasNaMao, card]
-    }));
   }
+  const card = player.deck.shift();
+  setPlayer((prevPlayer) => ({
+    ...prevPlayer,
+    cartasNaMao: [...prevPlayer.cartasNaMao, card],
+  }));
+  setPlayerHand((prevHand) => [...prevHand, card]);
+}
 
 
 
@@ -384,7 +401,7 @@ function Game() {
           <span>Energia: <span id="player-energy-value">{player.energiaAtual}</span>/<span id="player-energy-max">{player.energiaMaxima}</span></span>
         </div>
         <div id="player-hand">
-          {player.cartasNaMao.map((card, index) => createCard(card, index))}
+           {renderPlayerHand()}
         </div>
       </div>
     </section>
