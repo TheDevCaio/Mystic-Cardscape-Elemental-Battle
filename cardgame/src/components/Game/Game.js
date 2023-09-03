@@ -33,9 +33,9 @@ function Game() {
 
 
   const [locations, setLocations] = useState([
-   [], // Localização 1
-   [], // Localização 2
-   [], // Localização 3
+   [], 
+   [], 
+   [], 
   ]);
 
   const locationRef1 = useRef(null);
@@ -65,21 +65,21 @@ function Game() {
     if (event.target.classList.contains('droppable-location')) {
       if (event.target.children.length < 2) {
         if (player.energiaAtual >= cardData.custo) {
-          // Clone o estado do jogador
+
           const updatedPlayer = { ...player };
   
-          // Encontre o índice da carta na mão do jogador
+
           const cardIndex = updatedPlayer.cartasNaMao.findIndex((card) => card.nome === cardData.nome);
   
           if (cardIndex !== -1) {
-            // Remova a carta da mão do jogador
+
             updatedPlayer.cartasNaMao.splice(cardIndex, 1);
   
-            // Atualize o estado do jogador
+          
             setPlayer(updatedPlayer);
-            setPlayerHand([...updatedPlayer.cartasNaMao]); // Atualize playerHand com a nova cópia da mão
+            setPlayerHand([...updatedPlayer.cartasNaMao]);
   
-            // Atualize as localizações
+
             const updatedLocations = [...locations];
             updatedLocations[locationIndex] = [
               ...updatedLocations[locationIndex],
@@ -149,7 +149,7 @@ function Game() {
 }
 
 function drawCardPlayer() {
-  // Se o deck do jogador estiver vazio, exiba uma mensagem ou lide com isso conforme necessário
+ 
   if (player.deck.length === 0) {
     console.log('Ausência de energia')
       return;
@@ -196,7 +196,7 @@ function drawCardPlayer() {
   
     setTimeout(computerPlay, 4000);
   
-    // Ocultar o popup após o início do jogo
+   
     setTimeout(() => {
       hidePopup();
     }, 2000);
@@ -282,7 +282,7 @@ function drawCardPlayer() {
   
           const newCardElement = document.createElement("div");
           newCardElement.className = "cardPC";
-          newCardElement.style.marginRight = "1px"; // Defina a margem desejada aqui
+          newCardElement.style.marginRight = "1px"; 
           newCardElement.id = card.nome;
           newCardElement.dataset.power = card.poder;
           newCardElement.dataset.attribute = card.tipo;
@@ -307,7 +307,6 @@ function drawCardPlayer() {
     console.log("Iniciando arrasto da carta:", card.nome);
     console.log("Card data:", card);
   
-    // Defina os dados como JSON em vez de uma string simples
     event.dataTransfer.setData('application/json', JSON.stringify(card));
     event.dataTransfer.setDragImage(event.target, 0, 0);
   };
