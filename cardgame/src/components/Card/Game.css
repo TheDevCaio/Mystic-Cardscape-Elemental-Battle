@@ -46,13 +46,13 @@
   }
   
   .location {
-    width: 300px; /* Largura das localizações */
-    height: 160px; /* Altura das localizações */
+    width: 300px; 
+    height: 160px; 
     background-size: cover;
     background-position: center center;
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-right: 100px; /* Espaço entre as localizações */
+    margin-right: 100px; 
     padding: 5px;
     flex-wrap: wrap;
     display: flex;
@@ -136,7 +136,7 @@
   
   nav {
     display: flex;
-    justify-content: center; /* Centraliza os elementos horizontalmente */
+    justify-content: center; 
   }
   
   * {
@@ -168,7 +168,7 @@
   #menu,
   #menu ul {
     display: flex;
-    justify-content: center; /* Centraliza os elementos horizontalmente */
+    justify-content: center; 
   }
   
   #menu {

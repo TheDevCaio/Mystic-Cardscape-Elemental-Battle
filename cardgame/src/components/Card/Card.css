@@ -7,14 +7,14 @@
 
 .card {
   display: inline-block;
-  width: 120px; /* Defina a largura das cartas aqui */
-  height: 160px; /* Defina a altura das cartas aqui */
+  width: 120px; 
+  height: 160px; 
   background-color: #f1f1f1;
   border: 1px solid #ffffff;
   border-radius: 5px;
   padding: 5px;
   text-align: center;
-  margin-right: 5px; /* Reduzi a margem para 5px */
+  margin-right: 5px;
 }
 
 .card-image {
@@ -36,7 +36,7 @@
 }
 
 .cardPC {
-  width: 120px; /* Defina a largura das cartas aqui */
+  width: 120px;
   height: 160px; 
   max-width: 100%;
 }
