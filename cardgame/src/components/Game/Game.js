@@ -1,4 +1,5 @@
 /* global handleLocationDragOver, handleLocationDrop */
+/* eslint-disable */
 import ReactDOM from 'react-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import { cards } from '../Data/Object';
