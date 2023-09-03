@@ -5,12 +5,13 @@
     background-image: url("../../../public/assets/FundoJogo.png");
     background-size: 240%;
   }
+
   
   #board {
     display: flex;
     flex-wrap: wrap;
-    background-image: url("../../../public/assets/FundoJogo.png");
     justify-content: center;
+    background-image: url("../../../public/assets/FundoJogo.png");
   }
   
   #player {
@@ -45,21 +46,24 @@
   }
   
   .location {
-    height: 160px;
-    width: 400px;
+    width: 300px; /* Largura das localizações */
+    height: 160px; /* Altura das localizações */
+    background-size: cover;
+    background-position: center center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 100px; /* Espaço entre as localizações */
+    padding: 5px;
+    flex-wrap: wrap;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    padding: 5px;
-    flex-wrap: wrap;
+    justify-content: center;
     position: relative;
-  } 
-  .location .cardPC {
-    margin-top: 30px;
+  }
+ .location .cardPC {
+    margin-top: 20px;
+    margin-right: 0;
   }
   
   #location1 {
@@ -120,6 +124,7 @@
     color: inherit;
     text-decoration: inherit;
   }
+  
   
   ul {
     margin-top: 2%;

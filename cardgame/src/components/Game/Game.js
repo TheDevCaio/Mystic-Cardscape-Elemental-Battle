@@ -1,5 +1,8 @@
+/* global handleLocationDragOver, handleLocationDrop */
+import ReactDOM from 'react-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import { cards } from '../Data/Object';
+import { Location1, Location2, Location3 } from './Location';
 import '../Card/Card.css'
 import '../Card/Game.css'
 
@@ -19,23 +22,85 @@ function Game() {
     deck: shuffle([...cards]),
   });
 
+  const [popup, setPopup] = useState(false);
+  const [popupMsg, setPopupMsg] = useState('');
+  const [turno, setTurno] = useState(0);
+  const [popupVisible, setPopupVisible] = useState(true);
+
+
   const [locations, setLocations] = useState([
    [], // Localização 1
    [], // Localização 2
    [], // Localização 3
   ]);
 
+  const locationRef1 = useRef(null);
+  const locationRef2 = useRef(null);
+  const locationRef3 = useRef(null);
+
+  const [locationRefs, setLocationRefs] = useState([
+    { ref: locationRef1, index: 0 },
+    { ref: locationRef2, index: 1 },
+    { ref: locationRef3, index: 2 },
+  ]);
+
   
-  const [popup, setPopup] = useState(false);
-  const [popupMsg, setPopupMsg] = useState('');
-  const [turno, setTurno] = useState(0);
-  const [popupVisible, setPopupVisible] = useState(true);
+  const handleLocationDrop = (event, locationIndex) => {
+    console.log("Soltando carta na location:", locationIndex);
+    event.preventDefault();
 
-  const [locationRefs, setLocationRefs] = useState([]);
+    const cardData = JSON.parse(event.dataTransfer.getData('application/json'));
 
-  const getLocationRef = (index) => {
-    return locationRefs[index];
+    if (event.target.classList.contains('droppable-location')) {
+      if (event.target.children.length < 2) {
+        if (player.energiaAtual >= cardData.custo) {
+          // Clone o estado do jogador
+          const updatedPlayer = { ...player };
+
+          // Remova a carta da mão do jogador
+          const updatedHand = updatedPlayer.cartasNaMao.filter((_, index) => index !== cardData.index);
+          updatedPlayer.cartasNaMao = updatedHand;
+          updatedPlayer.energiaAtual -= cardData.custo;
+
+          // Atualize o estado do jogador
+          setPlayer(updatedPlayer);
+
+          // Atualize as localizações
+          const updatedLocations = [...locations];
+          updatedLocations[locationIndex] = [
+            ...updatedLocations[locationIndex],
+            {
+              image: cardData.imgSrc,
+              nome: cardData.nome,
+              tipo: cardData.tipo,
+              poder: cardData.poder,
+              custo: cardData.custo,
+            },
+          ];
+          setLocations(updatedLocations);
+        } else {
+          showPopupMessage('Você não tem energia suficiente!', 2000);
+        }
+      } else {
+        showPopupMessage('Você não pode jogar mais cartas nesse campo!', 2000);
+      }
+    }
   };
+
+  const handleLocationDragOver = (event) => {
+    event.preventDefault();
+  };
+  
+  useEffect(() => {
+    setLocationRefs([locationRef1, locationRef2, locationRef3]);
+    
+    locationRefs.forEach((locationRef, index) => {
+      if (locationRef && locationRef.current) {
+        locationRef.current.addEventListener("dragover", (event) => handleLocationDragOver(event, index));
+        locationRef.current.addEventListener("drop", (event) => handleLocationDrop(event, index));
+      }
+    });
+  }, [player, locations]);
 
 
 
@@ -61,25 +126,12 @@ function Game() {
   }
 
   function createCardPc(card) {
-    return (
-      <div
-        key={card.nome}
-        className="card-element cardPC"
-        id={card.nome}
-        data-power={card.poder}
-        data-attribute={card.tipo}
-        data-cost={card.custo}
-        ref={getLocationRef(0)}
-      >
-        <img
-          className="card-image"
-          draggable="false"
-          src="assets/background.png"
-          alt="Card Image"
-        />
-      </div>
-    );
-  }
+  return (
+    <div className="cardPC" id={card.nome} data-power={card.poder} data-attribute={card.tipo} data-cost={card.custo} key={card.nome}>
+      <img className="card" draggable="false" src="assets/background.png" alt="Card Image" />
+    </div>
+  );
+}
 
   function drawCardPlayer() {
     if (player.deck.length === 0) {
@@ -201,90 +253,47 @@ function Game() {
     for (let i = 0; i < computer.cartasNaMao.length; i++) {
       const card = computer.cartasNaMao[i];
       if (card.custo <= computer.energiaAtual) {
-        const randomLocation = Math.floor(Math.random() * 3); // Escolhe uma localização aleatória
+        const randomLocation = Math.floor(Math.random() * 3);
         const targetRef = locationRefs[randomLocation];
   
-        if (targetRef && targetRef.current && targetRef.current.childElementCount < 4) {
+        if (targetRef && targetRef.current && targetRef.current.childElementCount < 2) {
           setComputer(prevComputer => ({
             ...prevComputer,
             cartasNaMao: prevComputer.cartasNaMao.filter((_, index) => index !== i),
             energiaAtual: prevComputer.energiaAtual - card.custo,
           }));
   
-          targetRef.current.appendChild(createCardPc(card));
+          const newCardElement = document.createElement("div");
+          newCardElement.className = "cardPC";
+          newCardElement.style.marginRight = "1px"; // Defina a margem desejada aqui
+          newCardElement.id = card.nome;
+          newCardElement.dataset.power = card.poder;
+          newCardElement.dataset.attribute = card.tipo;
+          newCardElement.dataset.cost = card.custo;
+  
+          const img = document.createElement("img");
+          img.className = "cardPC";
+          img.draggable = "false";
+          img.src = "assets/background.png";
+          img.alt = "Card Image";
+  
+          newCardElement.appendChild(img);
+  
+          targetRef.current.appendChild(newCardElement);
+          
         }
       }
     }
   }
 
-  function handleDragStart(event, card) {
-    event.dataTransfer.setData("text/plain", card.nome);
-  }
+  const handleDragStart = (event, card) => {
+    console.log("Iniciando arrasto da carta:", card.nome);
+    console.log("Card data:", card);
   
-
-  useEffect(() => {
-    const playerHandDiv = document.getElementById("player-hand");
-
-    playerHandDiv.addEventListener("dragstart", function (event) {
-      if (
-        event.target.closest(".card") ||
-        event.target.classList.contains("card")
-      ) {
-        event.dataTransfer.setData("text/plain", event.target.id);
-      }
-    });
-
-    const handleLocationDragOver = (event) => {
-      event.preventDefault();
-    };
-
-    const handleLocationDrop = (event, locationIndex) => {
-      event.preventDefault();
-      const cardId = event.dataTransfer.getData("text/plain");
-      const card = document.getElementById(cardId);
-
-      const targetLocation = locations[locationIndex];
-
-      if (targetLocation.length < 4) {
-        if (player.energiaAtual >= parseInt(card.dataset.cost)) {
-          setLocations((prevLocations) => {
-            const newLocations = [...prevLocations];
-            newLocations[locationIndex] = [...newLocations[locationIndex], card];
-            return newLocations;
-          });
-
-          setPlayer((prevPlayer) => ({
-            ...prevPlayer,
-            energiaAtual: prevPlayer.energiaAtual - parseInt(card.dataset.cost),
-          }));
-        } else {
-          showPopupMessage("Você não tem energia suficiente!", 2000);
-        }
-      } else {
-        showPopupMessage("Você não pode jogar mais cartas nesse campo!", 2000);
-      }
-    };
-
-    // Attach event listeners to each location element
-    locationRefs.forEach((locationRef, index) => {
-      if (locationRef && locationRef.current) {
-        locationRef.current.addEventListener("dragover", handleLocationDragOver);
-        locationRef.current.addEventListener("drop", (event) => handleLocationDrop(event, index));
-      }
-    });
-
-    return () => {
-      playerHandDiv.removeEventListener("dragstart", handleDragStart);
-      locationRefs.forEach((locationRef, index) => {
-        if (locationRef && locationRef.current) {
-          locationRef.current.removeEventListener("dragover", handleLocationDragOver);
-          locationRef.current.removeEventListener("drop", () => handleLocationDrop);
-        }
-      });
-    };
-  }, [player, locationRefs]);
-
-
+    // Defina os dados como JSON em vez de uma string simples
+    event.dataTransfer.setData('application/json', JSON.stringify(card));
+    event.dataTransfer.setDragImage(event.target, 0, 0);
+  };
 
    function showPopupMessage(mensagem, tempoExibicao) {
     setPopupVisible(true);
@@ -301,57 +310,84 @@ function Game() {
   }
 
   return (
-    <main>
-      <section>
-        <nav id="menu">
-          <ul>
-            <li><a href="home.html">Home</a></li>
-            <li><a href="index.html">Jogo</a></li>
-            <li><a href="https://github.com/ufjf-dcc121/ufjf-dcc121-2023-1-atv12-soloplayer">Códigos</a></li>
-          </ul>
-        </nav>
-      </section>
+  <main>
+    <section>
+      <nav id="menu">
+        <ul>
+          <li><a href="home.html">Home</a></li>
+          <li><a href="index.html">Jogo</a></li>
+          <li><a href="https://github.com/ufjf-dcc121/ufjf-dcc121-2023-1-atv12-soloplayer">Códigos</a></li>
+        </ul>
+      </nav>
+    </section>
 
-      <section>
+    <section>
       <div id="popup" style={{ display: popupVisible ? 'popup-show' : 'none' }}>
-      <button className="button" id="start-btn" onClick={startGame}>Iniciar Jogo</button>
-      <p id="popup-msg">{popupMsg}</p>
+        <button className="button" id="start-btn" onClick={startGame}>Iniciar Jogo</button>
+        <p id="popup-msg">{popupMsg}</p>
       </div>
-      </section>
+    </section>
 
-      <section>
-  <div id="container" className={popupVisible ? 'game-inactive' : ''}>
-    <div id="computer">
-      <div id="computer-hand" className="display-hand"></div>
-      <div id="computer-energy"></div>
-    </div>
+    <section>
+      <div id="container" className={popupVisible ? 'game-inactive' : ''}>
+        <div id="computer">
+          <div id="computer-hand" className="display-hand"></div>
+          <div id="computer-energy"></div>
+        </div>
+      </div>
+    </section>
+
+   
+    <section>
+  <div id="board">
+    <div
+      ref={locationRef1}
+      id="location1"
+      className="location droppable-location location1"
+      onDragOver={(event) => handleLocationDragOver(event, 0)}
+      onDrop={(event) => handleLocationDrop(event, 0)}
+    ></div>
+    <div
+      ref={locationRef2}
+      id="location2"
+      className="location droppable-location location2"
+      onDragOver={(event) => handleLocationDragOver(event, 1)}
+      onDrop={(event) => handleLocationDrop(event, 1)}
+    ></div>
+    <div
+      id="location3"
+      className="location droppable-location location3"
+      onDragOver={(event) => handleLocationDragOver(event, 2)}
+      onDrop={(event) => handleLocationDrop(event, 2)}
+     ></div>
+
+
+<div id="board">
+  <Location1 cards={locations[0]} onDrop={handleLocationDrop} index={0} handleLocationDragOver={handleLocationDragOver} />
+  <Location2 cards={locations[1]} onDrop={handleLocationDrop} index={1} handleLocationDragOver={handleLocationDragOver} />
+  <Location3 cards={locations[2]} onDrop={handleLocationDrop} index={2} handleLocationDragOver={handleLocationDragOver} />
+</div>
+
   </div>
 </section>
 
-      <section>
-        <div id="board">
-          <div ref={locationRefs[0]} id="location1" className="location"></div>
-          <div ref={locationRefs[1]} id="location2" className="location"></div>
-          <div ref={locationRefs[2]} id="location3" className="location"></div>
-        </div>
-      </section>
 
-      <section>
-        <div className="buttons">
-          <button className="button" id="endTurn" onClick={newTurn}>Finalizar Turno</button>
-        </div>
-      </section>
+    <section>
+      <div className="buttons">
+        <button className="button" id="endTurn" onClick={newTurn}>Finalizar Turno</button>
+      </div>
+    </section>
 
-      <section>
-        <div id="player">
-          <div id="player-energy-bar">
-            <span>Energia: <span id="player-energy-value">{player.energiaAtual}</span>/<span id="player-energy-max">{player.energiaMaxima}</span></span>
-          </div>
-          <div id="player-hand">{player.cartasNaMao.map((card, index) => createCard(card, index))}</div>
+    <section>
+      <div id="player">
+        <div id="player-energy-bar">
+          <span>Energia: <span id="player-energy-value">{player.energiaAtual}</span>/<span id="player-energy-max">{player.energiaMaxima}</span></span>
         </div>
-      </section>
-    </main>
-  );
-}
-
-export default Game;
+        <div id="player-hand">
+          {player.cartasNaMao.map((card, index) => createCard(card, index))}
+        </div>
+      </div>
+    </section>
+  </main>
+); }
+export default Game; 
