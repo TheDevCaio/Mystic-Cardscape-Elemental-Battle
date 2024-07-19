@@ -1,6 +1,6 @@
 [build]
   command = "yarn build"
-  publish = "cardgame/.next" 
-// publish = ".next"
+  publish = "cardgame/build"
+  
 [[plugins]]
   package = "@netlify/plugin-nextjs"
